@@ -1,6 +1,5 @@
 class Entity {
     categories = [];
-    seed = random();
 
     constructor() {
         this.x = this.y = this.previousX = this.previousY = this.age = 0;
@@ -36,22 +35,5 @@ class Entity {
 
     renderDebug() {
         if (DEBUG && DEBUG_HITBOXES) this.hitbox.render();
-    }
-
-    interp(
-        interpProperty,
-        fromValue,
-        toValue,
-        interpDuration,
-        easing = linear,
-    ) {
-        return this.world.addEntity(new Interpolator(
-            this,
-            interpProperty,
-            fromValue,
-            toValue,
-            interpDuration,
-            easing,
-        )).awaitCompletion();
     }
 }

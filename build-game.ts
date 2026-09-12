@@ -19,15 +19,14 @@ const JS_FILES = [
     'utils/first-item.js',
 
     'graphics/wrap.js',
-    'graphics/create-canvas.js',
     'graphics/typography.js',
 
     'entity/entity.js',
-    'entity/interpolator.js',
-    'entity/particle.js',
     'entity/camera.js',
     'entity/structure.js',
+    'entity/obstacle.js',
     'entity/player.js',
+    'entity/hunter.js',
     'entity/hud.js',
 
     'screen/screen.js',
@@ -50,9 +49,6 @@ const CONSTANTS = {
     "false": 0,
     "const": "let",
     "null": 0,
-
-    "CELL_SIZE": 50,
-    "COMMAND_SPACING": 50,
 
     "INPUT_MODE_KEYBOARD": 0,
     "INPUT_MODE_TOUCH": 1,
@@ -98,7 +94,6 @@ const argv = yargs(process.argv.slice(2)).options({
     for (const constant of [
         "Z_BACKGROUND",
         "Z_STRUCTURE",
-        "Z_PARTICLE",
         "Z_PLAYER",
         "Z_HUD",
     ]) {

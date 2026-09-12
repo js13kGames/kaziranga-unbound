@@ -1,6 +1,6 @@
 class Camera extends Entity {
 
-    zoom = 1.3;
+    zoom = 1.35;
     categories = ['camera'];
 
     get actual() {
@@ -19,11 +19,12 @@ class Camera extends Entity {
 
         if (!this.target) return;
 
-        const dist = distance(this, this.target);
-        const angle = angleBetween(this, this.target);
-        const appliedDist = min(dist, dist * elapsed * 4);
-        this.x += appliedDist * cos(angle);
-        this.y += appliedDist * sin(angle) * 0.8;
+        // Position camera slightly ahead of the runner
+        const targetX = this.target.x + 240;
+        const targetY = 460;
+
+        this.x += (targetX - this.x) * min(1, elapsed * 10);
+        this.y += (targetY - this.y) * min(1, elapsed * 5);
     }
 
     shake(duration, shakePower) {

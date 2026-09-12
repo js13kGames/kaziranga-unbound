@@ -1,115 +1,93 @@
+const GROUND_Y = 580;
+
 class Structure extends Entity {
 
     type = 'structure';
     categories = ['structure'];
-    color = '#1e293b';
-
     z = Z_STRUCTURE;
 
-    constructor(matrix) {
-        super();
-        this.matrix = matrix || [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        ];
+    reposition(entity, radiusX, radiusY) {
+        // 1. Check ground line
+        if (entity.y + radiusY >= GROUND_Y) {
+            entity.y = GROUND_Y - radiusY;
+            return true;
+        }
+
+        // 2. Check platform ledges
+        if (entity.vY >= 0) {
+            for (const platform of this.world.category('platform')) {
+                const topY = platform.y - platform.radiusY;
+                const prevBottom = (entity.previousY || entity.y) + radiusY;
+                if (
+                    entity.x + radiusX > platform.x - platform.radiusX &&
+                    entity.x - radiusX < platform.x + platform.radiusX &&
+                    prevBottom <= topY + 24 &&
+                    entity.y + radiusY >= topY
+                ) {
+                    entity.y = topY - radiusY;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
-    cycle(elapsed) {
-        super.cycle(elapsed);
-        this.width = this.matrix[0].length * CELL_SIZE;
-        this.height = this.matrix.length * CELL_SIZE;
+    renderBackground() {
+        const camera = firstItem(this.world.category('camera'));
+        const camX = camera ? camera.x : 0;
+
+        // 1. Night Sky Background
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(0, 0, CANVAS_WIDTH * 2, CANVAS_HEIGHT * 2);
+
+        // 2. Distant Parallax Mountains (0.1x speed)
+        ctx.wrap(() => {
+            const shift1 = (camX * 0.1) % 600;
+            ctx.fillStyle = '#111827';
+            ctx.beginPath();
+            ctx.moveTo(-600 - shift1, GROUND_Y);
+            for (let x = -600 - shift1; x < CANVAS_WIDTH + 600; x += 150) {
+                ctx.lineTo(x + 75, GROUND_Y - 140 - (x % 300 === 0 ? 50 : 0));
+                ctx.lineTo(x + 150, GROUND_Y);
+            }
+            ctx.closePath();
+            ctx.fill();
+        });
+
+        // 3. Mid-ground Hills (0.3x speed)
+        ctx.wrap(() => {
+            const shift2 = (camX * 0.3) % 400;
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.moveTo(-400 - shift2, GROUND_Y);
+            for (let x = -400 - shift2; x < CANVAS_WIDTH + 400; x += 100) {
+                ctx.quadraticCurveTo(x + 50, GROUND_Y - 50, x + 100, GROUND_Y);
+            }
+            ctx.closePath();
+            ctx.fill();
+        });
     }
 
     render() {
-        if (!this.matrix) return;
+        const camera = firstItem(this.world.category('camera'));
+        const camX = camera ? camera.x : 0;
 
-        const rows = this.matrix.length;
-        const cols = this.matrix[0].length;
+        // Solid Ground Surface & Bedrock
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(camX - CANVAS_WIDTH, GROUND_Y, CANVAS_WIDTH * 2, CANVAS_HEIGHT);
 
-        this.prerendered = this.prerendered || createCanvas(this.width, this.height, (ctx) => {
-            for (let row = 0 ; row < rows ; row++) {
-                for (let col = 0 ; col < cols ; col++) {
-                    const cell = this.matrix[row][col];
-                    if (cell === 1) {
-                        ctx.fillStyle = '#334155';
-                        ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                        ctx.strokeStyle = '#475569';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(col * CELL_SIZE + 1, row * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                    } else if (cell === 2) {
-                        ctx.fillStyle = '#38bdf8';
-                        ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE / 4);
-                    }
-                }
-            }
-        });
+        // Neon / Pixel Ground Top Line
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(camX - CANVAS_WIDTH, GROUND_Y, CANVAS_WIDTH * 2, 4);
 
-        ctx.drawImage(this.prerendered, this.x, this.y);
-    }
-
-    reposition(entity, radiusX, radiusY, previousX, previousY) {
-        let remainingIterations = 2;
-        while (remainingIterations-- > 0) {
-            const { x, y } = entity;
-            const leftX = entity.x - radiusX;
-            const rightX = entity.x + radiusX;
-            const topY = entity.y - radiusY;
-            const bottomY = entity.y + radiusY;
-
-            let top = this.cellAt(x, topY);
-            let right = this.cellAt(rightX, y) === 1;
-            let left = this.cellAt(leftX, y) === 1;
-            let bottom = this.cellAt(x, bottomY);
-
-            let topLeft = this.cellAt(leftX, topY) === 1;
-            let topRight = this.cellAt(rightX, topY) === 1;
-            let bottomLeft = this.cellAt(leftX, bottomY) === 1;
-            let bottomRight = this.cellAt(rightX, bottomY) === 1;
-
-            const directionY = sign(y - (previousY || y));
-
-            const verticalCollisionCount = !!top + !!topLeft + !!topRight + !!bottom + !!bottomLeft + !!bottomRight;
-            const horizontalCollisionCount = !!left + !!topLeft + !!bottomLeft + !!right + !!topRight + !!bottomRight;
-
-            if (verticalCollisionCount + horizontalCollisionCount == 0) {
-                break;
-            }
-
-            const resolveVertical = () => {
-                if (top && top === 1) entity.y = ceilToNearest(topY, CELL_SIZE) + radiusY;
-                if (bottom && (bottom === 1 || directionY > 0)) entity.y = floorToNearest(bottomY, CELL_SIZE) - radiusY;
-            };
-
-            const resolveHorizontal = () => {
-                if (left) entity.x = ceilToNearest(leftX, CELL_SIZE) + radiusX;
-                if (right) entity.x = floorToNearest(rightX, CELL_SIZE) - radiusX;
-            };
-
-            if (remainingIterations == 0) {
-                resolveVertical();
-                resolveHorizontal();
-            } else if (verticalCollisionCount > 0) {
-                resolveVertical();
-            } else {
-                resolveHorizontal();
-            }
+        // Ground decorative dashes & pebbles (repeating pattern)
+        ctx.fillStyle = '#334155';
+        const startX = floor((camX - CANVAS_WIDTH) / 80) * 80;
+        for (let x = startX; x < camX + CANVAS_WIDTH; x += 80) {
+            ctx.fillRect(x + 10, GROUND_Y + 12, 18, 3);
+            ctx.fillRect(x + 45, GROUND_Y + 22, 10, 2);
+            ctx.fillRect(x + 65, GROUND_Y + 14, 6, 2);
         }
-    }
-
-    cellAt(x, y) {
-        const row = floor((y - this.y) / CELL_SIZE);
-        const col = floor((x - this.x) / CELL_SIZE);
-        if (!isBetween(0, row, this.matrix.length - 1)) return null;
-        if (!isBetween(0, col, this.matrix[0].length - 1)) return null;
-
-        return this.matrix[row]?.[col] || 0;
     }
 }
