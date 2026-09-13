@@ -13,15 +13,17 @@ class World {
         this.entities.sort((a, b) => a.z - b.z);
 
         ctx.wrap(() => {
-            ctx.fillStyle = '#0f172a';
+            ctx.fillStyle = '#4c2378';
             ctx.fillRect(0, 0, can.width, can.height);
 
             const camera = firstItem(this.category('camera'));
             if (camera) {
+                const isPortrait = CANVAS_HEIGHT > CANVAS_WIDTH;
+                const screenCenterY = isPortrait ? (CANVAS_HEIGHT * 0.68 - 120 * camera.zoom) : (CANVAS_HEIGHT / 2);
                 ctx.scale(camera.zoom, camera.zoom);
                 ctx.translate(
-                    CANVAS_WIDTH / 2 / camera.zoom - camera.actual.x,
-                    CANVAS_HEIGHT / 2 / camera.zoom - camera.actual.y,
+                    CANVAS_WIDTH / (2 * camera.zoom) - camera.actual.x,
+                    screenCenterY / camera.zoom - camera.actual.y,
                 );
             }
 

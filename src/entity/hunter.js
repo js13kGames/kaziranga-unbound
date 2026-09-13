@@ -38,7 +38,7 @@ class Bullet extends Entity {
                     this.vY = rnd(-50, 50);
 
                     // High-pitched crystal shield deflect ping SFX
-                    zzfx(...[.6,,900,.01,.04,.15,1,2,,,-450,.08,,,,,,.85,.02]);
+                    zzfx(...[.35,,900,.01,.04,.12,1,2,,,-450,.08,,,,,,.85,.02]);
 
                     camera?.shake(0.12, 5);
                     return;
@@ -94,6 +94,39 @@ class Bullet extends Entity {
     }
 }
 
+class ScorePopup extends Entity {
+    z = Z_HUD;
+    constructor(x, y, text = '+500') {
+        super();
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.vY = -120;
+    }
+    cycle(elapsed) {
+        super.cycle(elapsed);
+        this.y += this.vY * elapsed;
+        if (this.age > 1.0) {
+            this.world?.removeEntity(this);
+        }
+    }
+    render() {
+        ctx.wrap(() => {
+            ctx.translate(~~this.x, ~~this.y);
+            const alpha = between(0, 1 - (this.age / 1.0), 1);
+            ctx.globalAlpha = alpha;
+            ctx.font = 'bold 26px Courier New, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#fbbf24';
+            ctx.strokeStyle = '#050811';
+            ctx.lineWidth = 4;
+            ctx.strokeText(this.text, 0, 0);
+            ctx.fillText(this.text, 0, 0);
+        });
+    }
+}
+
 class Hunter extends Entity {
 
     type = 'hunter';
@@ -106,13 +139,15 @@ class Hunter extends Entity {
     dead = false;
 
     shootTimer = 0;
-    shootInterval = 2.0;
+    shootInterval = 1.6;
     aimDuration = 0.5;
 
-    constructor(x, y) {
+    constructor(x, y, shootInterval = 1.6) {
         super();
         this.x = x;
         this.y = y;
+        this.shootInterval = shootInterval;
+        this.shootTimer = rnd(0.4, shootInterval * 0.7); // Prime timer so hunters shoot quickly upon sighting
         this.hitbox.width = this.radiusX * 2;
         this.hitbox.height = this.radiusY * 2;
     }
@@ -121,12 +156,15 @@ class Hunter extends Entity {
         if (this.dead) return;
         this.dead = true;
         this.deathAge = this.age;
-        this.vX = sign(hitVX || 1) * 320;
-        this.vY = -380;
+        this.vX = sign(hitVX || 1) * 340;
+        this.vY = -400;
 
         // Hunter defeat SFX
         zzfx(...[.5,,260,.02,.1,.25,2,1.5,-4,2,-80,.08,,,,,,.65,.05]);
-        G.score += 250;
+        
+        // Award bonus kill score (+500)
+        G.bonusScore = (G.bonusScore || 0) + 500;
+        this.world?.addEntity(new ScorePopup(this.x, this.y - 30, '+500'));
     }
 
     cycle(elapsed) {
@@ -195,8 +233,8 @@ class Hunter extends Entity {
     shoot() {
         if (this.dead) return;
 
-        // Gunshot SFX
-        zzfx(...[.8,,180,,.02,.2,4,2,-8,,,,,.1,1.5,,.1,.1,.65,.04]);
+        // Subtle, quiet gunshot pop SFX
+        zzfx(...[.18,,360,,.01,.05,4,1.8,-12,,,,,.04,1,,.04,.04,.35,.02]);
 
         const barrelX = this.x + this.facing * 24;
         const barrelY = this.y - 4;

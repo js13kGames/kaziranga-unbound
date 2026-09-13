@@ -21,12 +21,13 @@ class GameplayScreen extends WorldScreen {
         this.world.addEntity(new HUD(this.player));
 
         // State variables
-        this.spawnX = 850;
+        this.groundSpawnX = 850;
+        this.tierSpawnX = [320, 480, 640];
         this.lastMilestone = 0;
-        this.bonusScore = 0;
         this.gameOverTime = 0;
         this.releasedRestart = false;
 
+        G.bonusScore = 0;
         G.score = 0;
     }
 
@@ -37,9 +38,9 @@ class GameplayScreen extends WorldScreen {
 
         // 1. Live Gameplay Loop
         if (!this.player.dead) {
-            // Distance-based score
+            // Distance-based score + Hunter defeat bonus score
             const distScore = ~~max(0, (this.player.x - 200) / 18);
-            G.score = distScore + this.bonusScore;
+            G.score = distScore + (G.bonusScore || 0);
 
             // Milestone sound fanfare every 100 meters (Classic Chrome Dino beep)
             const currentMilestone = floor(G.score / 100) * 100;
@@ -48,16 +49,84 @@ class GameplayScreen extends WorldScreen {
                 zzfx(...[.3,,850,.01,.06,.15,,,,,-120,.08,,,,,,.8,.02]);
             }
 
-            // Procedural Obstacle Spawner Loop (generates ahead of camera)
-            while (this.spawnX < this.player.x + 1600) {
-                this.spawnNextObstacle();
+            // Procedural Spawner Loop (generates platforms and ground ahead of camera)
+            const forwardHorizon = this.player.x + 1800;
+
+            // Ground obstacles (Tier 0: Forest Huts & Ground Hunters)
+            while (this.groundSpawnX < forwardHorizon) {
+                const roll = rnd(0, 100);
+                if (roll < 45) {
+                    this.world.addEntity(new ForestHut(this.groundSpawnX, GROUND_Y));
+                } else {
+                    this.world.addEntity(new Hunter(this.groundSpawnX, GROUND_Y - 16, 1.6));
+                }
+                this.groundSpawnX += rnd(680, 960);
+            }
+
+            // Tier 1 Platform (Level 1 Grass - y = 410: Hunters, Huts & Destructible Trees)
+            while (this.tierSpawnX[0] < forwardHorizon) {
+                const segW = rnd(650, 950);
+                const platX = this.tierSpawnX[0] + segW / 2;
+                this.world.addEntity(new PlatformTower(platX, 410, segW, 18));
+
+                const roll = rnd(0, 100);
+                if (roll < 20) {
+                    this.world.addEntity(new Hunter(platX + rnd(-segW * 0.2, segW * 0.2), 410 - 25, 1.4));
+                } else if (roll < 40) {
+                    this.world.addEntity(new ForestHut(platX + rnd(-segW * 0.2, segW * 0.2), 410 - 9));
+                } else if (roll < 75) {
+                    this.world.addEntity(new SmallTree(platX + rnd(-segW * 0.25, segW * 0.25), 410 - 9 - 13));
+                }
+
+                const gap = rnd(100, 140);
+                this.tierSpawnX[0] += segW + gap;
+            }
+
+            // Tier 2 Platform (Level 2 Elevated Grass - y = 240: VERY HARD High-Stakes Gauntlet!)
+            while (this.tierSpawnX[1] < forwardHorizon) {
+                const segW = rnd(520, 780);
+                const platX = this.tierSpawnX[1] + segW / 2;
+                this.world.addEntity(new PlatformTower(platX, 240, segW, 18));
+
+                const roll = rnd(0, 100);
+                if (roll < 32) {
+                    // Gauntlet 1: Double Hazard - Rapid Sniper Hunter at rear + Charging Tiger up front!
+                    this.world.addEntity(new Hunter(platX + segW * 0.35, 240 - 25, 1.1));
+                    this.world.addEntity(new Tiger(platX + segW * 0.1, 240 - 9 - 12, rnd(-390, -450)));
+                } else if (roll < 60) {
+                    // Gauntlet 2: Tiger Rush + Destructible Small Tree / Watchtower hurdle
+                    this.world.addEntity(new SmallTree(platX - segW * 0.1, 240 - 9 - 13));
+                    this.world.addEntity(new Tiger(platX + segW * 0.32, 240 - 9 - 12, rnd(-380, -440)));
+                } else if (roll < 82) {
+                    // Gauntlet 3: Double Tiger Pincer sprint!
+                    this.world.addEntity(new Tiger(platX + segW * 0.08, 240 - 9 - 12, -370));
+                    this.world.addEntity(new Tiger(platX + segW * 0.38, 240 - 9 - 12, -430));
+                } else {
+                    // Gauntlet 4: Lookout Bunker + Elite Sniper Hunter + Tree
+                    this.world.addEntity(new ForestHut(platX - segW * 0.18, 240 - 9));
+                    this.world.addEntity(new SmallTree(platX + segW * 0.05, 240 - 9 - 13));
+                    this.world.addEntity(new Hunter(platX + segW * 0.35, 240 - 25, 0.9));
+                }
+
+                const gap = rnd(125, 175);
+                this.tierSpawnX[1] += segW + gap;
+            }
+
+            // Tier 3 Cloud Platform (y = 70: Rare stepping stones, 1-2 per screen with large gaps)
+            while (this.tierSpawnX[2] < forwardHorizon) {
+                const segW = rnd(100, 160); // Small stepping stone cloud
+                const platX = this.tierSpawnX[2] + segW / 2;
+                this.world.addEntity(new CloudPlatform(platX, 70, segW, 18));
+
+                const gap = rnd(500, 850); // Large distance: only 1 or 2 clouds visible per screen
+                this.tierSpawnX[2] += segW + gap;
             }
 
             // Garbage Collection: remove passed entities behind runner
             const cutoffX = this.player.x - 700;
-            for (const categoryId of ['cactus', 'platform', 'enemy', 'bullet']) {
+            for (const categoryId of ['cactus', 'platform', 'enemy', 'bullet', 'pickup', 'destructible']) {
                 for (const entity of this.world.category(categoryId)) {
-                    if (entity.x < cutoffX) {
+                    if (entity.x + (entity.radiusX || 0) < cutoffX) {
                         this.world.removeEntity(entity);
                     }
                 }
@@ -67,6 +136,7 @@ class GameplayScreen extends WorldScreen {
             this.releasedPause ||= !downKeys[27];
             if (this.releasedPause && downKeys[27]) {
                 this.releasedPause = false;
+                downKeys[27] = false;
                 G.navigate(new PauseScreen()).awaitCompletion();
             }
         } else {
@@ -94,61 +164,5 @@ class GameplayScreen extends WorldScreen {
             }
         }
     }
-
-    spawnNextObstacle() {
-        const sx = this.spawnX;
-        const progress = min(1, (this.player.x - 200) / 12000); // 0 to 1 scaling difficulty
-        const gapReduction = progress * 120;
-        const roll = rnd(0, 100);
-
-        if (roll < 25) {
-            // Pattern 1: Single Cactus (Small or Tall)
-            const variant = rnd(0, 1) < 0.6 ? 0 : 1;
-            this.world.addEntity(new Cactus(sx, GROUND_Y, variant));
-            this.spawnX += max(420, rnd(460, 680) - gapReduction);
-        } else if (roll < 45) {
-            // Pattern 2: Clustered Cacti (Double or Triple)
-            const variant = progress > 0.3 && rnd(0, 1) < 0.5 ? 3 : 2;
-            this.world.addEntity(new Cactus(sx, GROUND_Y, variant));
-            this.spawnX += max(450, rnd(500, 720) - gapReduction);
-        } else if (roll < 65) {
-            // Pattern 3: Ground Hunters (Standalone or with Cactus)
-            if (rnd(0, 1) < 0.5) {
-                // Standalone Ground Hunter
-                this.world.addEntity(new Hunter(sx, GROUND_Y - 16));
-            } else {
-                // Cactus + Ground Hunter
-                this.world.addEntity(new Cactus(sx - 80, GROUND_Y, 0));
-                this.world.addEntity(new Hunter(sx + 70, GROUND_Y - 16));
-            }
-            this.spawnX += max(480, rnd(540, 760) - gapReduction);
-        } else if (roll < 85) {
-            // Pattern 4: Long, Thin Raised Platform with Hunter on center-right
-            const platformW = rnd(240, 280);
-            const platformH = 18;
-            const platformY = GROUND_Y - 75;
-            this.world.addEntity(new PlatformTower(sx, platformY, platformW, platformH));
-
-            // Place hunter on center-right of platform (giving left runway to land & run)
-            const hunterOffset = platformW * rnd(0.18, 0.32);
-            this.world.addEntity(new Hunter(sx + hunterOffset, platformY - platformH / 2 - 16));
-
-            this.spawnX += max(500, platformW + rnd(260, 420) - gapReduction);
-        } else {
-            // Pattern 5: Long Raised Platform + Hunter + Ground Cactus
-            const platformW = 260;
-            const platformH = 18;
-            const platformY = GROUND_Y - 75;
-            this.world.addEntity(new PlatformTower(sx + 60, platformY, platformW, platformH));
-
-            // Hunter on center-right of platform
-            const hunterOffset = platformW * rnd(0.18, 0.30);
-            this.world.addEntity(new Hunter(sx + 60 + hunterOffset, platformY - platformH / 2 - 16));
-
-            // Cactus on ground before the platform
-            this.world.addEntity(new Cactus(sx - 70, GROUND_Y, 0));
-
-            this.spawnX += max(520, platformW + rnd(280, 450) - gapReduction);
-        }
-    }
 }
+

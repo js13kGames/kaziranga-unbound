@@ -1,5 +1,29 @@
 let TOUCH_DOWN = false;
 
+getArcadeButtonBounds = () => {
+    const isPortrait = CANVAS_HEIGHT > CANVAS_WIDTH;
+    if (isPortrait) {
+        const deckTop = CANVAS_HEIGHT * 0.68;
+        const btnY = deckTop + (CANVAS_HEIGHT - deckTop) * 0.52;
+        const btnR = min(110, CANVAS_WIDTH * 0.17);
+        return {
+            isPortrait: true,
+            dash: { x: CANVAS_WIDTH * 0.28, y: btnY, r: btnR },
+            jump: { x: CANVAS_WIDTH * 0.72, y: btnY, r: btnR },
+            deckTop,
+        };
+    } else {
+        const btnR = 75;
+        const btnY = CANVAS_HEIGHT - 95;
+        return {
+            isPortrait: false,
+            dash: { x: 130, y: btnY, r: btnR },
+            jump: { x: CANVAS_WIDTH - 130, y: btnY, r: btnR },
+            deckTop: CANVAS_HEIGHT - 170,
+        };
+    }
+};
+
 ontouchstart = (evt) => {
     inputMode = INPUT_MODE_TOUCH;
     evt.preventDefault();
@@ -16,31 +40,77 @@ ontouchend = (evt) => {
     updateTouches(evt.touches);
 };
 
-updateTouches = (touches) => {
-    downKeys = {};
+oncontextmenu = (evt) => {
+    evt.preventDefault();
+    return false;
+};
+
+onmousedown = (evt) => {
+    if (evt.button === 2) {
+        // Right Mouse Click -> DASH
+        evt.preventDefault();
+        DASH_TRIGGER = true;
+        return;
+    }
 
     const out = {};
+    getEventPosition(evt, can, out);
+    const bounds = getArcadeButtonBounds();
+
+    TOUCH_DOWN = true;
+
+    if (inputMode === INPUT_MODE_TOUCH || bounds.isPortrait) {
+        const dDash = hypot(out.x - bounds.dash.x, out.y - bounds.dash.y);
+        if (dDash <= bounds.dash.r * 1.35) {
+            DASH_TRIGGER = true;
+            return;
+        }
+    }
+
+    downKeys[32] = true;
+};
+
+onmouseup = (evt) => {
+    if (evt.button === 2) {
+        DASH_TRIGGER = false;
+        return;
+    }
+    downKeys[32] = false;
+    TOUCH_DOWN = false;
+    DASH_TRIGGER = false;
+};
+
+updateTouches = (touches) => {
+    downKeys = {};
+    DASH_TRIGGER = false;
+
+    const bounds = getArcadeButtonBounds();
+    const out = {};
+    let jumpTouch = false;
+    let anyTouch = touches.length > 0;
+
     for (const touch of touches) {
         getEventPosition(touch, can, out);
 
-        // Left third: Move Left
-        // Middle-left: Move Right
-        // Middle-right: Action 1 (Down / Roll / Crouch)
-        // Right third: Action 2 (Jump / Space)
-        const cellX = ~~(4 * out.x / can.width);
-        downKeys[37] ||= cellX == 0; // Left
-        downKeys[39] ||= cellX == 1; // Right
-        downKeys[40] ||= cellX == 2; // Down
-        downKeys[38] ||= cellX == 3; // Up / Jump
-        downKeys[32] ||= cellX == 3; // Space
+        // Check Dash button circular zone
+        const dDash = hypot(out.x - bounds.dash.x, out.y - bounds.dash.y);
+        if (dDash <= bounds.dash.r * 1.35) {
+            DASH_TRIGGER = true;
+            continue;
+        }
+
+        // Any other touch on the entire screen triggers jump & start
+        jumpTouch = true;
     }
 
-    TOUCH_DOWN = touches.length > 0;
+    downKeys[32] = jumpTouch;
+    downKeys[38] = jumpTouch;
+    TOUCH_DOWN = anyTouch;
 };
 
 getEventPosition = (evt, can, out) => {
     if (!can) return;
     const canvasRect = can.getBoundingClientRect();
-    out.x = (evt.pageX - canvasRect.nomangle(left)) / canvasRect.width * can.width;
-    out.y = (evt.pageY - canvasRect.nomangle(top)) / canvasRect.height * can.height;
+    out.x = (evt.pageX - canvasRect.left) / canvasRect.width * can.width;
+    out.y = (evt.pageY - canvasRect.top) / canvasRect.height * can.height;
 };

@@ -1,7 +1,7 @@
 {
-  "name": "js13k-starter",
+  "name": "kaziranga-unbound",
   "version": "1.0.0",
-  "description": "Clean, modular starter template for JS13kGames submissions",
+  "description": "Kaziranga Unbound - JS13kGames 2026 Entry (#SaveKaziranga)",
   "private": true,
   "type": "module",
   "scripts": {

@@ -15,8 +15,11 @@ class Game {
     }
 
     async startNavigation() {
+        // 1. Play Opening Story Intro Cinematic
+        await this.navigate(new IntroScreen(), true).awaitCompletion();
+
         while (true) {
-            // 1. Show Main Menu
+            // 2. Show Main Menu
             await this.navigate(new MainMenuScreen(), true).awaitCompletion();
 
             // 2. Play Transition Screen
@@ -68,7 +71,7 @@ class Game {
                 ctx.textBaseline = nomangle('middle');
                 ctx.fillStyle = '#fff';
 
-                ctx.fillText(`FPS: ${fps.toFixed(1)}`, 0, 0);
+                ctx.fillText(nomangle('FPS: ') + fps.toFixed(1), 0, 0);
             });
         }
 

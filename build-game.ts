@@ -23,6 +23,7 @@ const JS_FILES = [
 
     'entity/entity.js',
     'entity/camera.js',
+    'entity/particle.js',
     'entity/structure.js',
     'entity/obstacle.js',
     'entity/player.js',
@@ -31,12 +32,12 @@ const JS_FILES = [
 
     'screen/screen.js',
     'screen/world-screen.js',
+    'screen/intro-screen.js',
     'screen/main-menu-screen.js',
     'screen/gameplay-screen.js',
     'screen/pause-screen.js',
 
     'sound/ZzFXMicro.js',
-    'sound/sonantx.js',
     'sound/song.js',
 
     'world.js',
@@ -62,6 +63,10 @@ const CONSTANTS = {
 const MANGLE_PARAMS = {
     "skip": [
         "repeat",
+        "SCORE",
+        "BEST",
+        "HI",
+        "FPS",
     ],
     "force": [
         "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
@@ -71,7 +76,12 @@ const MANGLE_PARAMS = {
         "center", "wrap", "angle", "target", "path", "step",
         "color", "label", "action", "duration", "name", "controls",
         "update", "state", "rotation", "zoom", "entity", "entities",
-        "frame", "text", "matrix", "acceleration"
+        "frame", "text", "matrix", "acceleration",
+        "dust", "dustCooldown", "maxDust", "lastLanded", "hitbox",
+        "jumpStartAge", "jumpStartY", "jumpHoldTime", "releasedJump",
+        "deathAge", "isShielding", "groundY", "shakeDuration", "shakeIntensity",
+        "fireCooldown", "facingRight", "walkPhase", "isLyingDown", "lieProgress",
+        "smoke", "score", "highScore", "bonusScore"
     ]
 };
 
@@ -95,6 +105,7 @@ const argv = yargs(process.argv.slice(2)).options({
         "Z_BACKGROUND",
         "Z_STRUCTURE",
         "Z_PLAYER",
+        "Z_PARTICLE",
         "Z_HUD",
     ]) {
         constants[constant] = z++;
@@ -122,7 +133,17 @@ const argv = yargs(process.argv.slice(2)).options({
             mangle: {
                 properties: false,
                 toplevel: true,
-            }
+            },
+            compress: {
+                passes: 3,
+                unsafe: true,
+                unsafe_arrows: true,
+                unsafe_comps: true,
+                unsafe_math: true,
+                unsafe_methods: true,
+                pure_getters: true,
+            },
+            ecma: 2020,
         })).code!;
     }
 

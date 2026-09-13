@@ -26,9 +26,11 @@ class Entity {
     cancelCamera() {
         const camera = firstItem(this.world.category('camera'));
         if (!camera) return;
+        const isPortrait = CANVAS_HEIGHT > CANVAS_WIDTH;
+        const screenCenterY = isPortrait ? (CANVAS_HEIGHT * 0.68 - 120 * camera.zoom) : (CANVAS_HEIGHT / 2);
         ctx.translate(
-            camera.actual.x - (1 / camera.zoom) * CANVAS_WIDTH / 2,
-            camera.actual.y - (1 / camera.zoom) * CANVAS_HEIGHT / 2,
+            camera.actual.x - CANVAS_WIDTH / (2 * camera.zoom),
+            camera.actual.y - screenCenterY / camera.zoom,
         );
         ctx.scale(1 / camera.zoom, 1 / camera.zoom);
     }

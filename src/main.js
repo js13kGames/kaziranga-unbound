@@ -1,5 +1,5 @@
 onload = () => {
-    can = nomangle(g);
+    can = document.querySelector('canvas');
     ctx = can.getContext('2d');
 
     onresize();

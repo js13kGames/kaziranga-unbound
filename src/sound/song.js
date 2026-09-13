@@ -1,118 +1,97 @@
-// Minimal starter chiptune song generated for Sonant-X
-SONG = {
-  "rowLen": 5513,
-  "endPattern": 4,
-  "songData": [
-    {
-      "osc1_oct": 7,
-      "osc1_det": 0,
-      "osc1_detune": 0,
-      "osc1_xenv": 0,
-      "osc1_vol": 160,
-      "osc1_waveform": 1,
-      "osc2_oct": 7,
-      "osc2_det": 0,
-      "osc2_detune": 5,
-      "osc2_xenv": 0,
-      "osc2_vol": 100,
-      "osc2_waveform": 1,
-      "noise_fader": 0,
-      "env_attack": 50,
-      "env_sustain": 200,
-      "env_release": 400,
-      "env_master": 180,
-      "fx_filter": 2,
-      "fx_freq": 3500,
-      "fx_resonance": 100,
-      "fx_delay_time": 4,
-      "fx_delay_amt": 80,
-      "fx_pan_freq": 2,
-      "fx_pan_amt": 50,
-      "lfo_osc1_freq": 0,
-      "lfo_fx_freq": 0,
-      "lfo_freq": 4,
-      "lfo_amt": 15,
-      "lfo_waveform": 0,
-      "p": [1, 2, 1, 3],
-      "c": [
-        {
-          "n": [140, 0, 144, 0, 147, 0, 144, 0, 152, 0, 147, 0, 144, 0, 140, 0]
-        },
-        {
-          "n": [138, 0, 142, 0, 145, 0, 142, 0, 150, 0, 145, 0, 142, 0, 138, 0]
-        },
-        {
-          "n": [143, 0, 147, 0, 150, 0, 147, 0, 155, 0, 150, 0, 147, 0, 143, 0]
+// ZzFXM (Zuper Zmall Zound Zynth Music)
+const zzfxM = (instruments, patterns, sequence, BPM = 125) => {
+    let sampleRate = 44100;
+    let beat = sampleRate / (BPM / 60) / 4;
+    let fullAudio = [];
+
+    for (let trackIdx = 0; trackIdx < sequence.length; trackIdx++) {
+        let curSeq = sequence[trackIdx];
+        let patternIdx = 0;
+        for (let patId of curSeq) {
+            let pat = patterns[patId];
+            if (pat) {
+                let instr = instruments[pat[0]];
+                for (let step = 1; step < pat.length; step++) {
+                    let note = pat[step];
+                    if (note) {
+                        let freq = 440 * 2 ** ((note - 69) / 12);
+                        let instrParams = [...instr];
+                        instrParams[2] = freq;
+                        let samples = zzfxG(...instrParams);
+                        let startSample = Math.floor((patternIdx * (pat.length - 1) + step - 1) * beat);
+                        for (let s = 0; s < samples.length; s++) {
+                            fullAudio[startSample + s] = (fullAudio[startSample + s] || 0) + samples[s];
+                        }
+                    }
+                }
+            }
+            patternIdx++;
         }
-      ]
-    },
-    {
-      "osc1_oct": 5,
-      "osc1_det": 0,
-      "osc1_detune": 0,
-      "osc1_xenv": 0,
-      "osc1_vol": 180,
-      "osc1_waveform": 2,
-      "osc2_oct": 5,
-      "osc2_det": 0,
-      "osc2_detune": 4,
-      "osc2_xenv": 0,
-      "osc2_vol": 80,
-      "osc2_waveform": 0,
-      "noise_fader": 0,
-      "env_attack": 10,
-      "env_sustain": 400,
-      "env_release": 400,
-      "env_master": 180,
-      "fx_filter": 1,
-      "fx_freq": 900,
-      "fx_resonance": 80,
-      "fx_delay_time": 0,
-      "fx_delay_amt": 0,
-      "fx_pan_freq": 0,
-      "fx_pan_amt": 0,
-      "lfo_osc1_freq": 0,
-      "lfo_fx_freq": 0,
-      "lfo_freq": 0,
-      "lfo_amt": 0,
-      "lfo_waveform": 0,
-      "p": [1, 2, 1, 3],
-      "c": [
-        {
-          "n": [116, 0, 0, 0, 116, 0, 0, 0, 116, 0, 0, 0, 116, 0, 0, 0]
-        },
-        {
-          "n": [114, 0, 0, 0, 114, 0, 0, 0, 114, 0, 0, 0, 114, 0, 0, 0]
-        },
-        {
-          "n": [119, 0, 0, 0, 119, 0, 0, 0, 119, 0, 0, 0, 119, 0, 0, 0]
-        }
-      ]
     }
-  ],
-  "songLen": 4
+    return fullAudio;
 };
 
+// Chill Assamese Bihu Folk Chiptune Song Data (Bahi Bamboo Flute, Mellow Dhol, Soft Toka, Warm Ektara)
+const SONG_INSTRUMENTS = [
+    [0.22, 0, 440, 0.02, 0.08, 0.14, 1, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.75], // 0: Bahi (Warm Bamboo Flute / Melodic Lead)
+    [0.32, 0, 82, 0.008, 0.05, 0.16, 0, 1.2, -3],                              // 1: Mellow Dhol (Deep Warm Folk Bass Drum)
+    [0.12, 0, 260, 0.005, 0.015, 0.03, 4, 1.4, -10],                           // 2: Soft Toka / Shaker Percussion
+    [0.22, 0, 220, 0.015, 0.08, 0.15, 0, 1.0]                                  // 3: Warm Ektara / Plucked Folk Bass
+];
+
+// 16-step patterns: [InstrumentIndex, ...16 note MIDI values (0 = rest)]
+// A-Major Bihu Pentatonic: 69=A4, 71=B4, 73=C#5, 76=E5, 78=F#5, 81=A5
+const SONG_PATTERNS = [
+    // 0: Relaxed Pastoral Flute Melody A
+    [0, 69, 0, 0, 73, 0, 76, 0, 78, 0, 76, 0, 73, 0, 69, 0, 0],
+    // 1: Flowing Bihu Flute Melody B
+    [0, 76, 0, 78, 0, 81, 0, 78, 0, 76, 0, 73, 0, 76, 0, 69, 0],
+    // 2: Gentle High Air C
+    [0, 81, 0, 0, 78, 0, 76, 0, 78, 0, 76, 0, 73, 0, 71, 0, 0],
+    // 3: Warm Cadence D
+    [0, 69, 0, 73, 0, 76, 0, 78, 0, 76, 0, 73, 0, 71, 0, 69, 0],
+
+    // 4: Laid-back Dhol Thump A
+    [1, 45, 0, 0, 0, 45, 0, 0, 45, 0, 0, 45, 0, 0, 45, 0, 0],
+    // 5: Laid-back Dhol Thump B
+    [1, 45, 0, 0, 45, 0, 0, 45, 0, 45, 0, 0, 45, 0, 0, 45, 0],
+
+    // 6: Gentle Toka Offbeats
+    [2, 0, 0, 60, 0, 0, 0, 60, 0, 0, 0, 60, 0, 0, 60, 0, 0],
+    // 7: Toka Shaker Pulse
+    [2, 0, 60, 0, 60, 0, 60, 0, 60, 0, 60, 0, 60, 0, 60, 60, 0],
+
+    // 8: Warm Ektara Bass A
+    [3, 45, 0, 0, 0, 49, 0, 0, 0, 45, 0, 0, 0, 52, 0, 0, 0],
+    // 9: Warm Ektara Bass B
+    [3, 45, 0, 0, 0, 54, 0, 0, 0, 52, 0, 0, 0, 45, 0, 49, 0]
+];
+
+const SONG_SEQUENCE = [
+    [0, 1, 2, 3, 0, 1, 2, 3], // Flute / Lead
+    [8, 9, 8, 9, 8, 9, 8, 9], // Bass
+    [4, 5, 4, 5, 4, 5, 4, 5], // Dhol
+    [6, 7, 6, 7, 6, 7, 6, 7]  // Shaker
+];
+
+let songGainNode;
+
 playSong = () => {
+    if (!zzfxX || songGainNode) return;
     try {
-        new MusicGenerator(SONG).createAudioBuffer(buffer => {
-            if (!audioCtx) return;
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.loop = true;
-
-            const gainNode = audioCtx.createGain();
-            gainNode.connect(audioCtx.destination);
-            source.connect(gainNode);
-            source.nomangle(start)();
-
-            playSong = () => 0;
-            setSongVolume = (x) => gainNode.gain.value = x * SONG_VOLUME;
-            setSongVolume(1);
-        });
-    } catch {
-        // Audio playback fallback
-    }
+        const samples = zzfxM(SONG_INSTRUMENTS, SONG_PATTERNS, SONG_SEQUENCE, 112);
+        const buffer = zzfxX.createBuffer(1, samples.length, 44100);
+        buffer.getChannelData(0).set(samples);
+        const source = zzfxX.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        songGainNode = zzfxX.createGain();
+        songGainNode.gain.value = SONG_VOLUME;
+        source.connect(songGainNode);
+        songGainNode.connect(zzfxX.destination);
+        source.start();
+        setSongVolume = (x) => { if (songGainNode) songGainNode.gain.value = x * SONG_VOLUME; };
+    } catch {}
 };
 
 setSongVolume = () => 0;

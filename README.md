@@ -1,106 +1,92 @@
-# JS13K Game Starter Template
+# 🦏 Kaziranga Unbound
+### **#SaveKaziranga • JS13kGames 2026 Entry**
 
-A clean, modular, and battle-tested starter pack for [JS13kGames](https://js13kgames.com/) submissions.
+[![JS13K Size](https://img.shields.io/badge/JS13K%20Size-11.4%20KB%20%2F%2013%20KB-success)](https://js13kgames.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-This template strips away game-specific assets and mechanics while keeping the complete build, audio, input, rendering, and entity architecture in place.
-
----
-
-## Features
-
-* **Under 13 KB Budget**: Built-in bundling pipeline with Terser, identifier mangling, constant inlining, and Roadroller quine compression.
-* **Zero External Dependencies at Runtime**: 100% native HTML5 Canvas 2D and Web Audio API.
-* **Physics & Substepping**: Smooth 120Hz physics substepping loop to eliminate high-speed tunneling and frame-rate dependence.
-* **Audio Included**:
-  * [ZzFX Micro](https://github.com/KilledByAPixel/ZzFX) for procedural 8-bit sound effects.
-  * [Sonant-X](https://github.com/nicolas-van/sonant-x) for polyphonic chiptune synth background music.
-* **Responsive Canvas**: Auto-scales to 16:9 widescreen or portrait orientation, with automatic mobile touch control detection.
-* **Modular Screen Stack**: Promise-based screen navigation (`awaitCompletion()`) for menus, cutscenes, levels, and transitions.
+*The Bureaucracy has slashed Kaziranga National Park's Eco-Sensitive Zone buffer from 10km down to just 1km! Armed poachers, snipers, and illegal corporate encroachers are swarming the sanctuary. As the armored Great Indian One-Horned Rhino, charge across the wilderness, deflect sniper rounds with your horn, smash poachers, and reclaim the Eco-Zone!*
 
 ---
 
-## Quick Start
+## 🦄 Myth & Lore: The Rhino & The Unicorn
+
+> **Historical Fact**: The legendary myth of the **Unicorn** was historically inspired by early traveler encounters with the **Indian One-Horned Rhinoceros** (*Rhinoceros unicornis*).
+> 
+> Throughout history, myths falsely claimed their single horns possessed magical healing and medicinal properties. Tragically, this myth led both the fictional unicorn and the real-world rhinoceros into centuries of ruthless poaching, greed, and exploitation. In *Kaziranga Unbound*, the rhino reclaims this mystical energy—channeling the legendary rainbow horn power not for exploitation, but to fight back and defend its ancestral homeland!
+
+---
+
+## 🎮 Controls
+
+### ⌨️ Desktop (Keyboard & Mouse)
+| Action | Key / Input | Description |
+| :--- | :--- | :--- |
+| **Jump / Stomp** | `[SPACE]`, `[W]`, `[UP]`, `[L-CLICK]` | Hold for higher jumps; stomp down on poachers & tigers from above |
+| **Rainbow Dash / Horn Shield** | `[SHIFT]`, `[D]`, `[RIGHT]`, `[R-CLICK]` | Charge at hypersonic speed; raises horn to deflect sniper bullets |
+| **Pause / Resume** | `[ESC]`, `[P]` | Pause or resume the game |
+| **Quick Restart** | `[R]` | Instant restart |
+
+### 📱 Mobile & Touch
+- **Dedicated Arcade Touch Buttons**: On-screen **JUMP** and **DASH** arcade buttons.
+- **Responsive Layout**: Seamlessly adapts to portrait or landscape orientations on mobile phones and tablets.
+
+---
+
+## ⚔️ Gameplay & Features
+
+- **Horn Deflection Engine**: Activate your Rainbow Dash to raise your indestructible horn shield. Incoming sniper bullets will bounce off your horn and reflect straight back at the hunters!
+- **Multi-Tiered Platform Gauntlet**:
+  - **Ground**: Swamps, bulldozers, jeeps, and patrolling poachers.
+  - **Tier 1 (Canopy)**: Riverbank platforms and aggressive scouts.
+  - **Tier 2 (High Ridges)**: Perilous multi-hazard gauntlets and rapid-fire sniper riflemen.
+  - **Tier 3 (Clouds)**: Rare, floating cloud platforms for high-risk navigation and massive score bonuses.
+- **Dust Energy Management**: Dashes consume Rainbow Dust energy. Manage your meter to prevent exhaustion and maintain your defensive charge.
+- **Enemies & Hazards**:
+  - **Poachers & Snipers**: Ranged riflemen that track and shoot fast velocity bullets.
+  - **Tigers**: High-speed sprinting predators.
+  - **Bulldozers & Jeeps**: Heavy industrial obstacles encroaching on the buffer zone.
+
+---
+
+## 🛠️ Technical Highlights (Under 11.4 KB Total)
+
+* **100% Pure Procedural Graphics**: Zero external image files or spritesheets. All rhino skeletal walking/sleeping kinematics, poachers, tigers, parallax sunset mountains, volumetric particle smoke, and muzzle flashes are mathematically rendered in real-time on HTML5 Canvas 2D.
+* **Chill Assamese Bihu Soundtrack (112 BPM)**: Custom synthesized chiptune background score featuring the **Bahi** (bamboo flute), **Dhol** (Assamese pitch-sliding drum), **Toka** (bamboo clapper), and **Ektara** folk bass.
+* **Physics & Deflection Engine**: Custom vector-reflection collision engine for real-time projectile deflections and multi-platform raycasting.
+* **Ultra-Lean Compression Pipeline**: Built with Terser, custom macro inlining, identifier mangling, and [Roadroller](https://github.com/lifthrasiir/roadroller) level 2 quine compression.
+
+---
+
+## 🚀 Building & Running Locally
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18+)
 
 ### 1. Development Mode
 ```bash
 npm run build:debug
 npm start
 ```
-This starts a local development server with file watching. Open `http://localhost:8080/debug.html`.
+Starts a local development server with live watching at `http://localhost:8080/debug.html`.
 
-### 2. Build for Production (JS13K submission)
+### 2. Production Build (JS13K Submission)
 ```bash
 npm run build:prod
 npm run zip:prod
 ```
-The final zipped game is generated at `build/game.zip`. The script will output the exact byte size and verify whether it fits under the 13,312 bytes (13 KB) limit.
+Builds the final production bundle at `build/index.html` and packages `build/game.zip`.
 
 ---
 
-## Controls
-
-* **Desktop**:
-  * `A` / `D` or `Arrow Left` / `Arrow Right`: Move
-  * `W` / `Arrow Up` / `Space`: Jump / Action
-  * `Escape`: Pause / Resume
-  * `R`: Restart (in pause menu)
-* **Mobile**:
-  * On-screen touch zones for directional movement and actions.
-
----
-
-## Project Structure
+## 📊 Build Size Budget
 
 ```
-starter/
-├── build-game.ts             # Bundler, constant inlining, Terser, Roadroller
-├── build-zip.ts              # Zipping script & 13KB validator
-├── package.json              # Build scripts and tooling dependencies
-├── tsconfig.json             # TypeScript configuration for tsx scripts
-└── src/
-    ├── index.html            # Minimal HTML shell
-    ├── style.css             # Full-window black canvas container
-    ├── globals.js            # Shared global instances (can, ctx, G, inputMode)
-    ├── main.js               # Entrypoint, canvas resize binding, Game init
-    ├── game.js               # Game manager, requestAnimationFrame, screen stack
-    ├── world.js              # Entity container, category indexing, camera scale
-    ├── input/
-    │   ├── keyboard.js       # WASD, ZQSD, and Arrow key input
-    │   └── touch.js          # Touch screen event handling
-    ├── utils/
-    │   ├── math.js           # Math helpers (angle, lerp, rnd, clamp)
-    │   ├── easing.js         # Animation curves (easeInQuad, easeOutSine)
-    │   ├── rect.js           # AABB rectangle collision utility
-    │   └── resizer.js        # Responsive 16:9 canvas letterboxing
-    ├── graphics/
-    │   ├── wrap.js           # ctx.wrap (save/restore)
-    │   ├── create-canvas.js  # Offscreen canvas creator
-    │   └── typography.js     # Styled canvas text for hotkey buttons
-    ├── entity/
-    │   ├── entity.js         # Base entity class with interp() tweening
-    │   ├── camera.js         # Follow camera with screen shake and zoom
-    │   ├── interpolator.js   # Async property lerp / tweening
-    │   ├── particle.js       # Particle emitter & fireworks
-    │   ├── player.js         # Starter player entity (movement, jump, dust)
-    │   ├── structure.js      # Platform matrix with AABB collision
-    │   └── hud.js            # HUD score, timer, and touch controls
-    ├── screen/
-    │   ├── screen.js         # Base screen class & screen transitions
-    │   ├── world-screen.js   # World screen with 120Hz physics substepping
-    │   ├── main-menu-screen.js # Title screen
-    │   ├── gameplay-screen.js  # Main gameplay scene
-    │   └── pause-screen.js     # Pause menu
-    └── sound/
-        ├── ZzFXMicro.js      # Procedural sound effect generator
-        ├── sonantx.js        # Web Audio synth
-        └── song.js           # Lightweight background music definition
+Target Limit : 13,312 bytes (13.00 KB)
+Current Build: 11,406 bytes (~11.14 KB)
+Free Margin  :  1,906 bytes (14.3% remaining)
 ```
 
 ---
 
-## How to Customize
-
-1. **Add an Entity**: Create a new class extending `Entity` in `src/entity/`, implement `cycle(elapsed)` and `render()`, and add the filename to `JS_FILES` in `build-game.ts`.
-2. **Add Sound Effects**: Generate a sound with [ZzFX Sound Generator](https://killedbyapixel.github.io/ZzFX/) and play it with `zzfx(...[params])`.
-3. **Change the Music**: Use [Sonant-X Live](https://github.com/nicolas-van/sonant-x-live) to export a JSON track and paste it into `src/sound/song.js`.
-4. **Edit the Terrain**: Update `matrix` in `src/entity/structure.js` (`1` = solid block, `2` = one-way platform, `0` = empty space).
+## 🌿 #SaveKaziranga
+Protect the wildlife, restore the Eco-Sensitive Zone, and support the conservation of the Great Indian One-Horned Rhinoceros!

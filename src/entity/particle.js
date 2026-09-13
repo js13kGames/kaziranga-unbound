@@ -17,8 +17,7 @@ class Particle extends Entity {
         for (const [propertyKey, offset] of Object.entries(values)) {
             interps.push(this.interp(propertyKey, this[propertyKey], this[propertyKey] + offset, duration));
         }
-        return Promise.all(interps)
-            .then(() => this.world?.removeEntity(this));
+        return Promise.all(interps).then(() => this.world?.removeEntity(this));
     }
 }
 
@@ -55,11 +54,13 @@ class PhysicalParticle extends Entity {
         }
     }
 
+    color = ['#f33', '#f90', '#fc0', '#3c5', '#0cb', '#af5', '#f25'][~~rnd(0, 7)];
+
     render() {
         const s = pointDistance(0, 0, this.vX, this.vY) / 25;
         ctx.translate(this.x, this.y);
         ctx.rotate(atan2(this.vY, this.vX) + PI);
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = this.color;
         ctx.fillRect(0, -2, s, 4);
     }
 }
@@ -71,3 +72,32 @@ fireworks = (world, position, count, radiusX = 0, radiusY = 0) => {
         particle.y = position.y + rnd(-1, 1) * radiusY;
     }
 };
+
+class SparkleParticle extends Entity {
+    z = Z_PARTICLE;
+    constructor(x, y, color = '#fbbf24') {
+        super();
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vX = rnd(-160, 160);
+        this.vY = rnd(-220, 40);
+        this.size = rnd(3, 5);
+    }
+    cycle(elapsed) {
+        super.cycle(elapsed);
+        this.vY += elapsed * 600;
+        this.x += this.vX * elapsed;
+        this.y += this.vY * elapsed;
+        if (this.age > 0.6) {
+            this.world?.removeEntity(this);
+        }
+    }
+    render() {
+        ctx.translate(~~this.x, ~~this.y);
+        ctx.globalAlpha = between(0, 1 - (this.age / 0.6), 1);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+    }
+}
+
